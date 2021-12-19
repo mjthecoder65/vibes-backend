@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const { validate, Genre } = require('../models/genre');
 
-
 router.get('/', async (req, res) => {
     const genres = await Genre.find();
     res.send(genres);
