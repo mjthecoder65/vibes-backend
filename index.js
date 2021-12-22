@@ -4,6 +4,7 @@ Joi.objectid = require('joi-objectid')(Joi);
 const config = require('config');
 const genres = require('./routes/genres');
 const songs = require('./routes/songs');
+const users = require('./routes/users');
 const express = require('express');
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended : false }));
 app.use('/api/genres', genres);
 app.use('/api/songs', songs);
+app.user('/api/users', users);
 
 
 mongoose.connect(config.get("mongoURI"))
