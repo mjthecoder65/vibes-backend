@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        minLength: 5,
+        maxlength: 50
     },
     password: {
         type: String,
@@ -31,6 +33,5 @@ function validate(user) {
 
     return schema.validate(user);
 }
-
 
 module.exports = { validate, User };
