@@ -14,5 +14,7 @@ function auth(req, res, next) {
     }
 }
 
+// Information Expert Principle
+
 module.exports = auth;
 
