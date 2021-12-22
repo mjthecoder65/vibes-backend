@@ -2,6 +2,7 @@ const { User, validate } = require('../models/user');
 const router = require('express').Router();
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
+const auth = require('../middleware/auth');
 
 router.post('/', async (req, res) => {
     const { error } = validate(req.body);
@@ -18,7 +19,11 @@ router.post('/', async (req, res) => {
     const token = user.generateAuthToken();
 
     res.header('x-auth-token', token).send(_.pick(user, ['_id', 'name', 'email']));
+});
 
+router.get('/me', auth, async (req, res) => {
+    const user = await User.findById(req.user._id).select('-password');
+    res.send(user);
 });
 
 module.exports = router;
