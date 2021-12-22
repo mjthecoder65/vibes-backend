@@ -1,3 +1,4 @@
 {
-    "mongoURI":"mongodb+srv://mjthecoder:coolhand@staging.ccigt.mongodb.net/vibes"
+    "mongoURI":"mongodb+srv://mjthecoder:coolhand@staging.ccigt.mongodb.net/vibes",
+    "jwtPrivateKey":""
 }
