@@ -13,13 +13,6 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', upload.array('song', 2), async (req, res) => {
-    // Handle the songs
-    const songAttr = {
-        name: req.body.name,
-        artist: req.body.artist,
-        genre: req.body.genre,
-    };
-    const { error } = require()
     const songMetadata = {
         name: req.body.name,
         artist: req.body.artist,
