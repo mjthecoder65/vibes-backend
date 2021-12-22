@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const passwordComplexity = require('joi-password-complexity')
 
 
 const userSchema = new mongoose.Schema({
@@ -26,10 +27,18 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 
 function validate(user) {
+    const complexityOptions = {
+        min: 8,
+        max: 30,
+        uppercase: 1,
+        lowercase: 1,
+        numeric: 1,
+        symbol: 1
+    }
     const schema = Joi.object({
         name: Joi.string().min(2).max(50).required(),
         email: Joi.string().min(5).max(255).email({ minDomainSegments : 2, tlds: { allow : ['com', 'net']}}).required(),
-        password:Joi.string().min(5).max(255).required()
+        password: passwordComplexity(complexityOptions).required(),
     });
 
     return schema.validate(user);
