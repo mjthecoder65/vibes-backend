@@ -3,14 +3,14 @@ const Joi = require('joi');
 Joi.objectid = require('joi-objectid')(Joi);
 const config = require('config');
 const genres = require('./routes/genres');
-const tracks = require('./routes/tracks');
+const songs = require('./routes/songs');
 const express = require('express');
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended : false }));
 app.use('/api/genres', genres);
-app.use('/api/tracks', tracks);
+app.use('/api/songs', songs);
 
 
 mongoose.connect(config.get("mongoURI"))
