@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended : false }));
 app.use('/api/genres', genres);
 app.use('/api/songs', songs);
-app.user('/api/users', users);
+app.use('/api/users', users);
 
 
 mongoose.connect(config.get("mongoURI"))
