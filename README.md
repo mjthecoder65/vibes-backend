@@ -1,3 +1,2 @@
 # vibes-backend
-
-- $vibes##GaDFGA@@N
+- Restful APIS for vibes music streaming web app
