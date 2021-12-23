@@ -1,46 +1,116 @@
-const { Song, validate } = require('../models/song');
+const { Song } = require('../models/song');
+const { Cover } = require('../models/cover');
 const router = require('express').Router();
-const { upload, getFileStream } = require('../aws/s3');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+const mongoose = require('mongoose');
 
-router.get('/:key', async (req, res) => {
-    const readStream = getFileStream(req.params.key);
-    readStream.pipe(res);
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        const mimetypeForImages = [
+            'image/jpeg','image/png', 'image/jpg'
+        ];
+        
+        if (mimetypeForImages.includes(file.mimetype)) {
+            cb(null, path.join(__dirname, '..', 'covers'));
+        } else if (new RegExp(/audio/).test(file.mimetype)) {
+            cb(null, path.join(__dirname, '..', 'musics'));
+        }
+
+    },
+    filename: function(req, file, cb) {
+        const movieId = mongoose.Types.ObjectId();
+        const extension = file.originalname.split('.')[1];
+        file._id = movieId;
+        cb(null, `${movieId.toString()}.${extension}`);
+    }
 });
+
+const upload = multer({ storage });
 
 router.get('/', async (req, res) => {
     const songs = await Song.find({});
     res.send(songs);
 });
 
-router.post('/', upload.array('song', 2), async (req, res) => {
-    const songMetadata = {
-        name: req.body.name,
-        artist: req.body.artist,
-        coverKey: "",
-        coverLocation: "",
-        songKey: "",
-        songLocation: "",
-        mimetype: "",
-        genre : mongoose.Types.ObjectId(req.body.genre),
-        createAt: Date.now()
+router.get('/:id', async (req, res) => {
+    const song = await Song.findById(req.params.id);
+    const filePath = path.join(__dirname, '..', song.path);
+    const { size: fileSize } = fs.statSync(filePath);
+
+    if (req.headers.range) {;
+        const range = req.headers.range;
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0]);
+        const end = parts[1] ? parseInt(parts[1]) : fileSize - 1;
+        const CHUNK_SIZE  = 1024 * 1024;
+        const headers = {
+            'Content-Range': 'bytes ' + start + '-' + end + '/' + fileSize,
+            'Accept-Ranges': 'bytes', 
+            'Content-Length': CHUNK_SIZE,
+            'Content-Type': 'audio/mpeg'
+        };
+
+        res.writeHead(206, headers);
+        fs.createReadStream(filePath, { start, end}).pipe(res); 
+     }
+});
+
+router.post('/',  upload.any(), async (req, res) => {
+    if (req.files) {
+        let song = {
+            name: req.body.name,
+            artist: req.body.artist,
+            genre: mongoose.Types.ObjectId(req.body.genre)
+        }
+
+        let cover = {};
+        for (let file of req.files) {
+            const audioPattern = /audio/;
+            const imagePattern = /image/;
+
+            if (audioPattern.test(file.mimetype)) {
+                song.path = file.path;
+                song._id =  file._id,
+                song.size = file.size;
+                song.mimetype = file.mimetype;
+            } else if (imagePattern.test(file.mimetype)) {
+                song.cover = file._id;
+                cover._id = file._id;
+                cover.path = file.path;
+                cover.size = file.size;
+                cover.mimetype = file.mimetype;
+            }
+        }
+        // TODO : How to handle two database requests at the time?
+        song = new Song(song);
+        await song.save();
+        cover = new Cover(cover);
+        await cover.save();
+        res.send(song);
+
+    } else {
+        res.status(400).send('Please Upload files');
     }
+});
 
+// Need to be handled carefully.
+router.delete('/:id', async (req, res) => {
+    const song = await Song.findById(req.params.id);
+    if (!song) return res.status(404).send("Song with id was not found");
+    const cover = await Cover.findById(song.cover);
 
-    for (let file of req.files) {
-        const type = file.mimetype.split('/')[0];
-        if (type === 'image'){
-            songMetadata.coverKey = file.key;
-            songMetadata.coverLocation = file.location
-        } else if (type === "audio") {
-            songMetadata.songKey = file.key;
-            songMetadata.songLocation = file.location;
-            songMetadata.mimetype = file.mimetype;
-            songMetadata.size = file.size;
-        }     
-    };
+    fs.unlink(song.path, async (error) =>{
+        if (error) return res.status(500).send("Internal server error");
+        await Song.findByIdAndRemove(req.params.id);
+    });
 
-    let song = new Song(songMetadata);
-    song = await song.save();
+     fs.unlink(cover.path, async (error) => {
+        if (error) return res.status(500).send("Internal server error");
+        await Cover.findByIdAndRemove(cover._id);
+    });
+
     res.send(song);
 });
 
