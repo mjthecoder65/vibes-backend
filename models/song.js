@@ -30,6 +30,14 @@ const songSchema = new mongoose.Schema({
         required: true,
         minLength: 4,
         maxLength: 10
+    },
+    genre: {
+        type: mongoose.Types.ObjectId,
+        required: true
+    },
+    cover: {
+        type: mongoose.Types.ObjectId,
+        required: true
     }
 });
 
