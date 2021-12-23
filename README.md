@@ -1,3 +1,3 @@
 # vibes-backend
 
-- Restful APIS for vibes music streaming web app
+- Restful APIs for vibes music streaming web app
