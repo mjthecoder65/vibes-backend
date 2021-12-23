@@ -33,7 +33,7 @@ function validate(req) {
         email: Joi.string().min(5).max(255).email({ minDomainSegments : 2, tlds: { allow : ['com', 'net']}}).required(),
         password: passwordComplexity(complexityOptions)
     });
-
+    
     return schema.validate(req);
 }
 
