@@ -10,7 +10,6 @@ const coverSchema = new mongoose.Schema({
     size: {
         type: Number,
         min: 0,
-        max: 100000,
         required: true
     },
     path: {
