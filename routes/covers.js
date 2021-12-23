@@ -9,7 +9,5 @@ router.get('/:id', async (req, res) => {
     readStream.pipe(res);
 });
 
+
 module.exports = router;
-
-
-
