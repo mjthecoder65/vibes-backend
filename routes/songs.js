@@ -36,24 +36,22 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const song = await Song.findById(req.params.id);
-    const filePath = path.join(__dirname, '..', song.path);
-    const { size: fileSize } = fs.statSync(filePath);
 
     if (req.headers.range) {;
         const range = req.headers.range;
         const parts = range.replace(/bytes=/, "").split("-");
         const start = parseInt(parts[0]);
-        const end = parts[1] ? parseInt(parts[1]) : fileSize - 1;
+        const end = parts[1] ? parseInt(parts[1]) : song.size - 1;
         const CHUNK_SIZE  = 1024 * 1024;
         const headers = {
-            'Content-Range': 'bytes ' + start + '-' + end + '/' + fileSize,
+            'Content-Range': 'bytes ' + start + '-' + end + '/' + song.size,
             'Accept-Ranges': 'bytes', 
             'Content-Length': CHUNK_SIZE,
             'Content-Type': 'audio/mpeg'
         };
 
         res.writeHead(206, headers);
-        fs.createReadStream(filePath, { start, end}).pipe(res); 
+        fs.createReadStream(song.path, { start, end}).pipe(res); 
      }
 });
 
